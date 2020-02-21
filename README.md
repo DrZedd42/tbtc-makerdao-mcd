@@ -40,9 +40,9 @@ It should be installed. Test by running `which seth`, and if after reloading you
 
 There are scripts which automate the majority of the steps found in the [original guide](https://github.com/keep-network/tbtc-makerdao-mcd/blob/d41459d7e1646fe9517bba00c411c7d6f2201187/README.md).
 
-Note: scripts are configured to use Ropsten by default, though addresses for Kovan are there.
+Note: scripts are configured to use Ropsten by default, though with some find+replace you can configure Kovan too.
 
-1) Run `source account.sh` to a Ropsten account preloaded with Ether, and some environment variables for Dapptools. 
+1) Run `source account.sh` to configure a Ropsten account preloaded with Ether, and some environment variables for Dapptools. 
 
 2) Compile the spell contracts.
 
