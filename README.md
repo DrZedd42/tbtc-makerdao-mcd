@@ -1,70 +1,62 @@
 # Dss Add Ilk Spell
 
-Spell contract to deploy a new collateral type in the DSS system.
+Spell contract to deploy a new collateral type (TBTC) in the DSS system.
 
-## Additional Documentation
+## Resources
 
-- `dss-deploy` [source code](https://github.com/makerdao/dss-deploy)
-- `dss` [source code](https://github.com/makerdao/dss)
+ - [ds-chief](https://github.com/dapphub/ds-chief/blob/master/src/chief.sol) and [doc](https://docs.makerdao.com/smart-contract-modules/governance-module/chief-detailed-documentation)
+ - [pause](https://docs.makerdao.com/smart-contract-modules/governance-module/pause-detailed-documentation#2-contract-details), relevant for `Spell.schedule/cast`
+ - dapptool's [seth](https://github.com/dapphub/dapptools)
 
-## Deployment
-
-### Prerequisites:
-
-- seth/dapp (https://dapp.tools/)
-- Have a DSS instance running
 
 ### Steps:
 
-1) Export contract variables
+Clone the repo. 
 
-- `export TOKEN=<TOKEN ADDR>`
-- `export PIP=<TOKEN/USD FEED ADDR>`
-- `export ILK="$(seth --to-bytes32 "$(seth --from-ascii "<COLLATERAL NAME>")")"`
-- `export MCD_VAT=<VAT ADDR>`
-- `export MCD_CAT=<CAT ADDR>`
-- `export MCD_JUG=<JUG ADDR>`
-- `export MCD_SPOT=<SPOTTER ADDR>`
-- `export MCD_PAUSE=<PAUSE ADDR>`
-- `export MCD_PAUSE_PROXY=<PAUSE PROXY ADDR>`
-- `export MCD_ADM=<CHIEF ADDR>`
-- `export MCD_END=<END ADDR>`
+```sh
+git clone https://github.com/keep-network/tbtc-makerdao-mcd --recursive --quiet
+```
 
-2) Deploy Adapter (e.g. [GemJoin](https://github.com/makerdao/dss/blob/master/src/join.sol#L62))
+#### Install Nix + Dapptools
+Dapptools is the MakerDAO toolset for Ethereum transactions. We need to install an older version, as the newer one is broken (see [this issue](https://github.com/dapphub/dapptools/issues/341) for more).
 
-- `export JOIN=$(dapp create GemJoin "$MCD_VAT" "$ILK" "$TOKEN")`
+For ease of setup, we'll install Dapptools-latest and then proceed to rebuild an older version.
 
-3) Deploy Flip Auction and set permissions (e.g. [Flipper](https://github.com/makerdao/dss/blob/master/src/flip.sol))
+```sh
+curl https://dapp.tools/install | sh
+```
 
-- `export FLIP=$(dapp create Flipper "$MCD_VAT" "$ILK")`
+Now Nix + dapptools should be installed, let's install the older (working) version.
 
-- `seth send "$FLIP" 'rely(address)' "$MCD_PAUSE_PROXY"`
+```
+cd dapptools/
+git submodule update --init --remote --quiet
+nix-env -f . -iA dapp seth solc hevm ethsign
+```
 
-- `seth send "$FLIP" 'deny(address)' "$ETH_FROM"`
+It should be installed. Test by running `which seth`, and if after reloading your terminal it fails, add `. $HOME/.nix-profile/etc/profile.d/nix.sh` to your profile.
 
-4) Export New Collateral Type variables
-- `export LINE=<DEBT CEILING VALUE>` (e.g. 5M DAI `"$(seth --to-uint256 $(echo "5000000"*10^45 | bc))"`)
-- `export MAT=<LIQUIDATION RATIO VALUE>` (e.g. 150% `"$(seth --to-uint256 $(echo "150"*10^25 | bc))"`)
-- `export DUTY=<STABILITY FEE VALUE>` (e.g. 1% yearly `"$(seth --to-uint256 1000000000315522921573372069)"`)
-- `export CHOP=<LIQUIDATION PENALTY VALUE>` (e.g. 10% `"$(seth --to-uint256 $(echo "110"*10^25 | bc))"`)
-- `export LUMP=<LIQUIDATION QUANTITY VALUE>` (e.g. 1K DAI `"$(seth --to-uint256 $(echo "1000"*10^18 | bc))"`)
+### Run
 
-5) Deploy Spell
+There are scripts which automate the majority of the steps found in the [original guide](https://github.com/keep-network/tbtc-makerdao-mcd/blob/d41459d7e1646fe9517bba00c411c7d6f2201187/README.md).
 
-- `export SPELL=$(seth send --create out/DssAddIlkSpell.bin 'DssAddIlkSpell(bytes32,address,address[8] memory,uint256[5] memory)' $ILK $MCD_PAUSE ["${MCD_VAT#0x}","${MCD_CAT#0x}","${MCD_JUG#0x}","${MCD_SPOT#0x}","${MCD_END#0x}","${JOIN#0x}","${PIP#0x}","${FLIP#0x}"] ["$LINE","$MAT","$DUTY","$CHOP","$LUMP"])`
+Note: scripts are configured to use Ropsten by default, though addresses for Kovan are there.
 
-6) Create slate
+1) Run `source account.sh` to a Ropsten account preloaded with Ether, and some environment variables for Dapptools. 
 
-- `seth send "$MCD_ADM" 'etch(address[] memory)' ["${SPELL#0x}"]`
+2) Compile the spell contracts.
 
-7) Wait for the Spell to be elected
+-  ```sh
+   dapp update
+   dapp build --extract
+   ```
 
-8) Schedule Spell
+3) Deploy the spell and slate it for voting. This should output the spell contract address.
 
-- `seth send "$SPELL" 'schedule()'`
+- `./1-deploy-spell.sh`
 
-9) Wait for Pause delay
+4) Wait for the Spell to be elected. This is where your friendly neighbourhood MKR whale can help. 😉
 
-10) Cast Spell
+5) Schedule Spell, Wait for Pause delay (0 on Ropsten, 5 minutes on mainnet), Cast Spell
 
-- `seth send "$SPELL" 'cast()'`
+- `./1-cast-spell.sh`
