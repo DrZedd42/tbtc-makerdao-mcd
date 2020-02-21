@@ -51,7 +51,7 @@ Note: scripts are configured to use Ropsten by default, though with some find+re
    dapp build --extract
    ```
 
-3) Deploy the spell and slate it for voting. This should output the spell contract address.
+3) Deploy the spell and slate it for voting. This should output the spell contract address. We'll need to store this into `$SPELL` afterwards.
 
 - `./1-deploy-spell.sh`
 
@@ -59,4 +59,4 @@ Note: scripts are configured to use Ropsten by default, though with some find+re
 
 5) Schedule Spell, Wait for Pause delay (0 on Ropsten, 5 minutes on mainnet), Cast Spell
 
-- `./1-cast-spell.sh`
+- `./2-cast-spell.sh $SPELL`
