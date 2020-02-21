@@ -4,3 +4,6 @@
 [submodule "lib/dss-deploy"]
 	path = lib/dss-deploy
 	url = https://github.com/makerdao/dss-deploy
+[submodule "dapptools"]
+	path = dapptools
+	url = ./dapptools
