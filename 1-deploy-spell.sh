@@ -1,33 +1,35 @@
 set -ex
 
 # Set accounts.
-source account.sh
+. account.sh
 
-export ETH_GAS=3000000
+export ETH_GAS_PRICE=2500000000
+export ETH_GAS=6000000
 
 # Setup contract addresses.
 # 
 
-for MAKER_CONTRACT in $(cat deployments/maker_rinkeby.json| jq -r 'keys[]')
-do
-    ADDRESS=$(cat deployments/maker_rinkeby.json | jq -r .$MAKER_CONTRACT)
-    export $MAKER_CONTRACT=$ADDRESS
-done
+# for MAKER_CONTRACT in $(cat deployments/maker_rinkeby.json| jq -r 'keys[]')
+# for MAKER_CONTRACT in $(cat deployments/maker_testchain.json | jq -r 'keys[]')
+# do
+#     ADDRESS=$(cat deployments/maker_testchain.json | jq -r .$MAKER_CONTRACT)
+#     export $MAKER_CONTRACT=$ADDRESS
+# done
 
 # We load these programatically above.
-# export MCD_VAT=0xba987bdb501d131f766fee8180da5d81b34b69d9
-# export MCD_CAT=0x0511674a67192fe51e86fe55ed660eb4f995bdd6
-# export MCD_JUG=0xcbb7718c9f39d05aeede1c472ca8bf804b2f1ead
-# export MCD_SPOT=0x3a042de6413edb15f2784f2f97cc68c7e9750b2d
-# export MCD_PAUSE=0x8754e6ecb4fe68daa5132c2886ab39297a5c7189
-# export MCD_PAUSE_PROXY=0x0e4725db88bb038bba4c4723e91ba183be11edf3
-# export MCD_ADM=0xbbffc76e94b34f72d96d054b31f6424249c1337d
-# export MCD_END=0x24728acf2e2c403f5d2db4df6834b8998e56aa5f
-# export MCD_JOIN_DAI=0x5aa71a3ae1c0bd6ac27a1f28e1415fffb6f15b8c
+export MCD_VAT=0x11c8d156e1b5fd883e31e9091874f2af80b02775
+export MCD_CAT=0xf2cba62837a52b0c1847f225438c82d050b4ac19
+export MCD_JUG=0x0e88266e5d517d6358ad6adabc15475ea2d277d1
+export MCD_SPOT=0x2a92ccf051f33912115f86ea0530f4999e3ac1ac
+export MCD_PAUSE=0x7adf0ddd0776042b87fa7f504270257c269bf61e
+export MCD_PAUSE_PROXY=0xa7653a6f8c956f4bc45d68d55c2f3ce277282a88
+export MCD_ADM=0x392e4ff172e6d88c3375de218f6e7e2fa75d3c82
+export MCD_END=0xbde07bb0c774f41a59901876454637e3feab8c73
+export MCD_JOIN_DAI=0x8c4be23de45f82a4fec7a93f69929bd2a13a4777
 
 
 # TBTC Token
-export TOKEN="0x083f652051b9CdBf65735f98d83cc329725Aa957"
+export TOKEN="0x375AA1c60442A1D0D87D3A8E28bfFcdD82cC7128"
 
 
 # Set Collateral Type.
@@ -43,7 +45,8 @@ export ILK="$(seth --to-bytes32 "$(seth --from-ascii "TBTC-A")")"
 
 # Deploy price feeds.
 export PIP=$(dapp create DSValue)
-seth send $PIP 'poke(bytes32)' $(seth --to-uint256 "$(seth --to-wei 9000 ETH)")
+# Set price to $9000 USD.
+seth send $PIP 'poke(bytes32)' $(seth --to-uint256 "$(seth --to-wei 1 ETH)")
 
 echo TBTC price set to $(seth call $PIP 'read()')
 
