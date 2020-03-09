@@ -9,3 +9,7 @@ export ETH_FROM=$(seth rpc eth_coinbase)
 
 export ETH_FROM=$(seth accounts | head -n1 | cut -d' ' -f1)
 echo Balance of $ETH_FROM is $(seth balance $ETH_FROM)
+
+
+export ETH_GAS_PRICE=2500000000
+export ETH_GAS=6000000

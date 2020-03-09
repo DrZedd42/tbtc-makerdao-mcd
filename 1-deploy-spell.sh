@@ -3,39 +3,38 @@ set -ex
 # Set accounts.
 . account.sh
 
-export ETH_GAS_PRICE=2500000000
-export ETH_GAS=6000000
-
 # Setup contract addresses.
 # 
 
 # for MAKER_CONTRACT in $(cat deployments/maker_rinkeby.json| jq -r 'keys[]')
-# for MAKER_CONTRACT in $(cat deployments/maker_testchain.json | jq -r 'keys[]')
-# do
-#     ADDRESS=$(cat deployments/maker_testchain.json | jq -r .$MAKER_CONTRACT)
-#     export $MAKER_CONTRACT=$ADDRESS
-# done
+for MAKER_CONTRACT in $(cat deployments/maker_testchain.json| jq -r 'keys[]')
+# for MAKER_CONTRACT in MCD_VAT MCD_CAT MCD_JUG MCD_SPOT MCD_PAUSE MCD_PAUSE_PROXY MCD_ADM MCD_END MCD_JOIN_DAI;
+do
+    ADDRESS=$(cat deployments/maker_testchain.json | jq -r .$MAKER_CONTRACT)
+    export $MAKER_CONTRACT=$ADDRESS
+done
 
 # We load these programatically above.
-export MCD_VAT=0x11c8d156e1b5fd883e31e9091874f2af80b02775
-export MCD_CAT=0xf2cba62837a52b0c1847f225438c82d050b4ac19
-export MCD_JUG=0x0e88266e5d517d6358ad6adabc15475ea2d277d1
-export MCD_SPOT=0x2a92ccf051f33912115f86ea0530f4999e3ac1ac
-export MCD_PAUSE=0x7adf0ddd0776042b87fa7f504270257c269bf61e
-export MCD_PAUSE_PROXY=0xa7653a6f8c956f4bc45d68d55c2f3ce277282a88
-export MCD_ADM=0x392e4ff172e6d88c3375de218f6e7e2fa75d3c82
-export MCD_END=0xbde07bb0c774f41a59901876454637e3feab8c73
-export MCD_JOIN_DAI=0x8c4be23de45f82a4fec7a93f69929bd2a13a4777
+# export MCD_VAT=0x11c8d156e1b5fd883e31e9091874f2af80b02775
+# export MCD_CAT=0xf2cba62837a52b0c1847f225438c82d050b4ac19
+# export MCD_JUG=0x0e88266e5d517d6358ad6adabc15475ea2d277d1
+# export MCD_SPOT=0x2a92ccf051f33912115f86ea0530f4999e3ac1ac
+# export MCD_PAUSE=0x7adf0ddd0776042b87fa7f504270257c269bf61e
+# export MCD_PAUSE_PROXY=0xa7653a6f8c956f4bc45d68d55c2f3ce277282a88
+# export MCD_ADM=0x392e4ff172e6d88c3375de218f6e7e2fa75d3c82
+# export MCD_END=0xbde07bb0c774f41a59901876454637e3feab8c73
+# export MCD_JOIN_DAI=0x8c4be23de45f82a4fec7a93f69929bd2a13a4777
 
 
 # TBTC Token
-export TOKEN="0x375AA1c60442A1D0D87D3A8E28bfFcdD82cC7128"
+export TOKEN=$1
 
 
 # Set Collateral Type.
 # Each ethereum token in Maker Protocol can have multiple collateral types and each one can be initialized with a different set of risk parameters. 
 # Affixing an alphabetical letter to the token symbol will help users differentiate these collateral types.
-export ILK="$(seth --to-bytes32 "$(seth --from-ascii "TBTC-A")")"
+COLLATERAL_TYPE_NAME="TBTC-A"
+export ILK="$(seth --to-bytes32 "$(seth --from-ascii "$COLLATERAL_TYPE_NAME")")"
 
 
 # A set of changes to be made at a time are captured in a Spell smart contract. 
@@ -46,11 +45,13 @@ export ILK="$(seth --to-bytes32 "$(seth --from-ascii "TBTC-A")")"
 # Deploy price feeds.
 export PIP=$(dapp create DSValue)
 # Set price to $9000 USD.
-seth send $PIP 'poke(bytes32)' $(seth --to-uint256 "$(seth --to-wei 1 ETH)")
+seth send $PIP 'poke(bytes32)' $(seth --to-uint256 "$(seth --to-wei 10000 ETH)")
 
 echo TBTC price set to $(seth call $PIP 'read()')
 
 export JOIN=$(dapp create GemJoin "$MCD_VAT" "$ILK" "$TOKEN")
+
+echo MCD_JOIN_TBTC_A $JOIN
 
 # Deploy Collateral Auction contract.
 export FLIP=$(dapp create Flipper "$MCD_VAT" "$ILK")
@@ -93,5 +94,5 @@ echo SPELL $SPELL
 
 
 # Slate Spell.
-seth send "$MCD_ADM" 'etch(address[] memory)' ["${SPELL#0x}"]
+# seth send "$MCD_ADM" 'etch(address[] memory)' ["${SPELL#0x}"]
 
